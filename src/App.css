@@ -20,8 +20,8 @@
   background: lightgray;
   border: 1px solid black;
   float: left;
-  height: 100px;
-  width: 100px;
+  height: 5vw;
+  width: 5vw;
   margin-right: -1px;
   margin-top: -1px;
   padding: 0;
@@ -32,8 +32,8 @@
   background: white;
   border: 1px solid black;
   float: left;
-  height: 100px;
-  width: 100px;
+  height: 5vw;
+  width: 5vw;
   margin-right: -1px;
   margin-top: -1px;
   padding: 0;
@@ -41,8 +41,8 @@
 }
 
 .queen-icon {
-  height: 100px;
-  width: 100px;
+  height: 5vw;
+  width: 5vw;
 }
 
 #board {

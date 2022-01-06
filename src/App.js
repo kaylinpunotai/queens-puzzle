@@ -6,10 +6,10 @@ class Square extends React.Component {
   render() {
     return (
       <button
-        className = {this.props.shade}  // define the background shade of each square
-        onClick = {this.props.onClick}
+        className={this.props.shade}  // define the background shade of each square
+        onClick={this.props.onClick}
       >
-        {this.props.pieceImg}
+        {this.props.icon}
       </button>
     );
   }
@@ -18,65 +18,76 @@ class Square extends React.Component {
 class Board extends React.Component {
   // Render squares with a background shade and icon of the piece inside. 
   renderSquare(i, bgType) {   // int i = index of square; string bgType = className of the square's bg shade
-    let piece = null;
+    let icon = null;
     if (this.props.squares[i] === "X") {  // placed piece icon
-      piece = (
-        <img className = "queen-icon"
-        src = "Images/queenIcon.png"/>
+      icon = (
+        <img className="queen-icon"
+        src="Images/queenIcon.png"/>
       );
     }
-    if (this.props.squares[i] === "E") {  // error icon
-      piece = (
-        <img className = "queen-icon"
-        src = "Images/errorIcon.png"/>
+    else if (this.props.squares[i] === "E") {  // error icon
+      icon = (
+        <img className="queen-icon"
+        src="Images/errorIcon.png"/>
       );
     }
-    if (this.props.squares[i] === "W") {  // win icon
-      piece = (
-        <img className = "queen-icon"
-        src = "Images/winIcon.png"/>
+    else if (this.props.squares[i] === "W") {  // win icon
+      icon = (
+        <img className="queen-icon"
+        src="Images/winIcon.png"/>
       );
     }
 
     return (
       <Square
-        shade = {bgType}
-        pieceImg = {piece}
-        onClick = {() => this.props.onClick(i)}
+        key={i}
+        shade={bgType}
+        icon={icon}
+        onClick={() => this.props.onClick(i)}
       />
     )
   }
 
   // Render the chessboard with alternating background shades
   render() {
+    const size = this.props.boardSize;
+    var board = []; // board will have this.state.boardSize items (columns) and each item will be an array of renderSquares of size this.state.boardSize (rows)
+
+    for (let row = 0; row < size; row++) { // create a row of squares and push into board
+      var squares = [];   // squares will contain the row of renderSquares
+      for (let col = 0; col < size; col++) {
+        let index = size * row + col;   // calculate the index of the current square
+        if (size % 2 === 1) {   // if the board size is odd, then square will alternate between shades cleanly based on index even/oddness
+          if (index % 2 === 0) {  // even number squares will be light-shaded
+            squares.push(this.renderSquare(index, "lightSquare"));
+          }
+          else {  // odd number squares will be dark-shaded
+            squares.push(this.renderSquare(index, "darkSquare"));
+          }
+        }
+        else {  // else if the board size is even, then squares will alternate between shades based on if the index row and column is XOR even/odd
+          if ((row % 2 === 0 || col % 2 === 0) && !(row % 2 === 0 && col % 2 === 0)) {  // if the index's row and col are XOR even, then the square will be dark-shaded
+            squares.push(this.renderSquare(index, "darkSquare"));
+          }
+          else {  // else, the square will be light-shaded
+            squares.push(this.renderSquare(index, "lightSquare"));
+          }
+        }
+      }
+
+      // once the row is done, push into board as a single item with <div> to separate from the next row
+      board.push(
+        <div key={row}>
+          {squares}
+        </div>
+      );
+    }
+
     return (
       <div>
-        <div className = "row1">
-          {this.renderSquare(0, "lightSquare")}
-          {this.renderSquare(1, "darkSquare")}
-          {this.renderSquare(2, "lightSquare")}
-          {this.renderSquare(3, "darkSquare")}
-        </div>
-        <div className = "row2">
-          {this.renderSquare(4, "darkSquare")}
-          {this.renderSquare(5, "lightSquare")}
-          {this.renderSquare(6, "darkSquare")}
-          {this.renderSquare(7, "lightSquare")}
-        </div>
-        <div className = "row3">
-          {this.renderSquare(8, "lightSquare")}
-          {this.renderSquare(9, "darkSquare")}
-          {this.renderSquare(10, "lightSquare")}
-          {this.renderSquare(11, "darkSquare")}
-        </div>
-        <div className = "row4">
-          {this.renderSquare(12, "darkSquare")}
-          {this.renderSquare(13, "lightSquare")}
-          {this.renderSquare(14, "darkSquare")}
-          {this.renderSquare(15, "lightSquare")}
-        </div>
+        {board}
       </div>
-    )
+    );
   }
 }
 
@@ -84,24 +95,30 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      squareStatus: Array(4).fill(null),  // store status of each square
+      boardSize: 4,       // changeable board size
+      squareStatus: [],  // store status of each square
+      piecesPlaced: 0,    // total # of pieces placed on the board
     };
   }
 
   squareClick(i) {    // int i = index of square;
     // when a square is clicked, add a piece if there's nothing inside and remove a piece if there's already a piece there
     var squares = this.state.squareStatus;    // get all square statuses
+    var pieces = this.state.piecesPlaced;
     const occupied = ["X", "E", "W"];   // values of occupied squares
 
     if (occupied.includes(squares[i])) {  // if the square already has a value, then clicking it again removes the value
       squares[i] = null;
+      pieces--;
     }
     else {  // else the square is empty, then place a piece there
       squares[i] = "X"; 
+      pieces++;
     }
 
     this.setState({
       squareStatus: squares,  // set new square status
+      piecesPlaced: pieces,   // set new # pieces
     });
   }
 
@@ -188,34 +205,69 @@ class App extends React.Component {
       }
     }
 
-    for (let i = 0; i < squares.length; i++) {
-      if (errPieces.includes(i)) {  // set all pieces in error to E icon
+    // adjust square values for for errors, non-errors, or winning
+    for (let i = 0; i < squares.length; i++) { 
+      if ((errPieces.length === 0) && (this.state.piecesPlaced === this.state.boardSize) && (occupied.includes(squares[i]))) {  // if all necessary pieces are placed and there are no errors, then user won
+        squares[i] = "W";
+      }
+      else if (errPieces.includes(i)) {         // set all pieces in error to E icon
         squares[i] = "E";
       }
-      else if (occupied.includes(squares[i])) {
-        squares[i] = "X";   // else, set all non-error pieces to X icon
+      else if (occupied.includes(squares[i])) { // else, set all non-error pieces to X icon
+        squares[i] = "X";
       }
     }
+  }
 
-    
+  startOver() {
+    // reset all squares to empty
+    this.setState({
+      squareStatus: [],
+      piecesPlaced: 0,
+    });
+  }
+  
+  changeBoardSize(event) {
+    // adjust board size and reset
+    this.setState({
+      boardSize: event.target.value
+    })
+    this.startOver();
   }
 
   render() {
     // render the game info and chessboard
     const squares = this.state.squareStatus;
     this.checkPlacement();
+
     return (
-      <div className = "app">
-        <div className = "game-title">
+      <div className="app">
+        <div className="game-title">
           Queens Puzzle
         </div>
-        <div className = "game-description">
+        <div className="game-description">
           Place queens on the chessboard without any of the pieces attacking another. A queen can move down the length of a column, row, and diagonal.
+          <div className="game-options">
+            <div className="change-boardsize">
+              Change Board Size:
+              <div onChange={(event) => this.changeBoardSize(event)}>
+                <label><input type="radio" value={4} name="boardsize" defaultChecked/>4x4</label><br/>
+                <label><input type="radio" value={5} name="boardsize" />5x5</label><br/>
+                <label><input type="radio" value={6} name="boardsize" />6x6</label><br/>
+                <label><input type="radio" value={7} name="boardsize" />7x7</label><br/>
+                <label><input type="radio" value={8} name="boardsize" />8x8</label><br/>
+              </div>
+            </div>
+          </div>
+          <button id="restart-button" onClick={() => this.startOver()}>
+              Start Over
+          </button>
         </div>
         <div id="board">
           <Board
-            squares = {squares}
-            onClick = {(i) => this.squareClick(i)}
+            squares={squares}
+            onClick={(i) => this.squareClick(i)}
+            boardSize={this.state.boardSize}
           />
         </div>
       </div>
