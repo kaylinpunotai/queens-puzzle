@@ -239,6 +239,13 @@ class App extends React.Component {
           Place queens on the chessboard without any of the pieces attacking another. A queen can move down the length of a column, row, and diagonal.
         </div>
         <div className="game-area">
+          <div id="board">
+              <Board
+                squares={squares}
+                onClick={(i) => this.squareClick(i)}
+                boardSize={this.state.boardSize}
+              />
+          </div>
           <div className="game-options">
             <div className="change-boardsize">
               Change Board Size:
@@ -250,19 +257,14 @@ class App extends React.Component {
                 <label><input type="radio" value={8} name="boardsize" />8x8</label><br/>
               </div>
             </div>
-            <div>
-              Remaining pieces: {piecesLeft}
+            <div id="game-status">
+              <div id="remaining-pieces">
+                Remaining Pieces: {piecesLeft}
+              </div>
+              <button id="restart-button" onClick={() => this.startOver()}>
+                Start Over
+              </button>
             </div>
-            <button id="restart-button" onClick={() => this.startOver()}>
-              Start Over
-            </button>
-          </div>
-          <div id="board">
-            <Board
-              squares={squares}
-              onClick={(i) => this.squareClick(i)}
-              boardSize={this.state.boardSize}
-            />
           </div>
         </div>
       </div>
