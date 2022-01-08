@@ -22,19 +22,25 @@ class Board extends React.Component {
     if (this.props.squares[i] === "X") {  // placed piece icon
       icon = (
         <img className="queen-icon"
-        src="Images/queenIcon.png"/>
+          src="Images/queenIcon.png"
+          alt="Queen icon"
+          />
       );
     }
     else if (this.props.squares[i] === "E") {  // error icon
       icon = (
         <img className="queen-icon"
-        src="Images/errorIcon.png"/>
+          src="Images/errorIcon.png"
+          alt="Error icon"
+        />
       );
     }
     else if (this.props.squares[i] === "W") {  // win icon
       icon = (
         <img className="queen-icon"
-        src="Images/winIcon.png"/>
+          src="Images/winIcon.png"
+          alt="Win icon"
+        />
       );
     }
 
@@ -173,7 +179,6 @@ class App extends React.Component {
       errorIndices.set(index, err);
     }
 
-    var count = [];        // counter to store occupied pieces
     var errPieces = [];   // store indices of pieces that are in error
     var squares = this.state.squareStatus;    // get all square statuses
     const occupied = ["X", "E", "W"]  // values of occupied squares
@@ -196,7 +201,7 @@ class App extends React.Component {
     
     // adjust square values for for errors, non-errors, or winning
     for (let i = 0; i < squares.length; i++) { 
-      if ((errPieces.length === 0) && (this.state.piecesPlaced == boardSize) && (occupied.includes(squares[i]))) {  // if all necessary pieces are placed and there are no errors, then user won
+      if ((errPieces.length === 0) && (parseInt(this.state.piecesPlaced) === parseInt(boardSize)) && (occupied.includes(squares[i]))) {  // if all necessary pieces are placed and there are no errors, then user won
         squares[i] = "W";
       }
       else if (errPieces.includes(i)) {         // set all pieces in error to E icon
