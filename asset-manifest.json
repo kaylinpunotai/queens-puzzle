@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/queens-puzzle/static/css/main.5b27260d.css",
-    "main.js": "/queens-puzzle/static/js/main.ae1d04b4.js",
+    "main.css": "/queens-puzzle/static/css/main.2203de74.css",
+    "main.js": "/queens-puzzle/static/js/main.97503e8d.js",
     "static/js/787.5341869a.chunk.js": "/queens-puzzle/static/js/787.5341869a.chunk.js",
     "index.html": "/queens-puzzle/index.html",
-    "main.5b27260d.css.map": "/queens-puzzle/static/css/main.5b27260d.css.map",
-    "main.ae1d04b4.js.map": "/queens-puzzle/static/js/main.ae1d04b4.js.map",
+    "main.2203de74.css.map": "/queens-puzzle/static/css/main.2203de74.css.map",
+    "main.97503e8d.js.map": "/queens-puzzle/static/js/main.97503e8d.js.map",
     "787.5341869a.chunk.js.map": "/queens-puzzle/static/js/787.5341869a.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.5b27260d.css",
-    "static/js/main.ae1d04b4.js"
+    "static/css/main.2203de74.css",
+    "static/js/main.97503e8d.js"
   ]
 }
