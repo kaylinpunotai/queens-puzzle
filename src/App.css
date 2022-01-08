@@ -16,6 +16,20 @@
   text-align: justify;
 }
 
+.game-area {
+  display: flex;
+  flex-direction: row;
+}
+
+.game-options {
+  margin-top: 5vh;
+  padding-top: 5vh;
+  padding-bottom: 5vh;
+  padding-left: 5vw;
+  padding-right: 5vw;
+  border-style: solid;
+}
+
 .darkSquare {
   background: lightgray;
   border: 1px solid black;

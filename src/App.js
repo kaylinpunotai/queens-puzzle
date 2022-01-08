@@ -125,89 +125,78 @@ class App extends React.Component {
   checkPlacement() {
     // check to make sure only one queen occupies each row, colunn, and diagonal
 
-    const rowIndices = [  // all indices in each row
-      [ 0,  1,  2,  3], 
-      [ 4,  5,  6,  7],
-      [ 8,  9, 10, 11],
-      [12, 13, 14, 15]
-    ]
+    // for each square, map the other squares that would cause an error
+    const boardSize = this.state.boardSize; // get the number of squares per length of the board
+    const errorIndices = new Map(); // store the values of all indices that lead to an error if the key index piece is placed
 
-    const colIndices = [  // all indices in each column
-      [ 0,  4,  8, 12],
-      [ 1,  5,  9, 13],
-      [ 2,  6, 10, 14],
-      [ 3,  7, 11, 15]
-    ]
+    for (let index = 0; index < (boardSize ** 2); index++) {
+      var err = [];   // store all error values for the index
 
-    const diagIndices = new Map([ // all indices in each diagonal
-      [0,  [ 5, 10, 15]],
-      [1,  [ 4,  6, 11]],
-      [2,  [ 5,  7,  8]],
-      [3,  [ 6,  9, 12]],
-      [4,  [ 1,  9, 14]],
-      [5,  [ 0,  2,  8, 10, 15]],
-      [6,  [ 1,  3,  9, 11, 12]],
-      [7,  [ 2, 10, 13]],
-      [8,  [ 2,  5, 13]],
-      [9,  [ 3,  4,  6, 12, 14]],
-      [10, [ 0,  5,  7, 13, 15]],
-      [11, [ 1,  6, 14]],
-      [12, [ 3,  6,  9]],
-      [13, [ 7,  8, 10]],
-      [14, [ 4,  9, 11]],
-      [15, [ 0,  5, 10]]
-    ])
+      var indexRow = Math.floor(index / boardSize);    // get row of the index
+      var indexCol = index - (indexRow * boardSize);   // get column of the index
+
+      for (let x = 0; x < boardSize; x++) {
+        // add all squares in the same row as index
+        var sameRow = (indexRow * boardSize) + x;
+        if (sameRow !== index) {  // to prevent adding index to error list
+          err.push(sameRow);
+        }
+
+        // add all squares in the same column as index
+        var sameCol = (x * boardSize) + indexCol;
+        if (sameCol !== index) {  // to prevent adding index to error list
+          err.push(sameCol);
+        }
+
+        // add all squares diagonal to the index
+        var prevRow = indexRow - (x + 1); // get row numbers to the left of the index
+        var nextRow = indexRow + (x + 1); // get row numbers to the right of the index
+        var prevCol = indexCol - (x + 1); // get column numbers above the index
+        var nextCol = indexCol + (x + 1); // get column numbers under the index
+
+        if ((prevRow >= 0) && (prevCol >= 0)) {         // ifs are to make sure indices are within the boundaries of the board
+          err.push((prevRow * boardSize) + prevCol);  // top-left
+
+        }
+        if ((prevRow >= 0) && (nextCol < boardSize)) {
+          err.push((prevRow * boardSize) + nextCol);  // top-right
+        }
+        if ((nextRow < boardSize) && (prevCol >= 0)) {
+          err.push((nextRow * boardSize) + prevCol);  // bottom-left
+        }
+        if ((nextRow < boardSize) && (nextCol < boardSize)) {
+          err.push((nextRow * boardSize) + nextCol);  // bottom-right
+        }
+      }
+      
+      // add new map entry with key: index and value: err[]
+      errorIndices.set(index, err);
+    }
 
     var count = [];        // counter to store occupied pieces
     var errPieces = [];   // store indices of pieces that are in error
     var squares = this.state.squareStatus;    // get all square statuses
     const occupied = ["X", "E", "W"]  // values of occupied squares
 
-    // check if more than one queen is in each row
-    for (let row = 0; row < rowIndices.length; row++) {   // go through each row
-      for (let i = 0; i < rowIndices[row].length; i++) {   // go through each index in a row
-        var index = rowIndices[row][i];
-        if (occupied.includes(squares[index])) {  // if the square is occupied, add to the piece count for the row
-          count.push(index);
-        }
-      }
-      if (count.length > 1) {  // if there are more than 1 pieces in a row, there is an error
-        errPieces = errPieces.concat(count);  // add the counted pieces as errors
-      }
-      count = [];   // empty the counter array for the next check
-    }
-
-    // check if more than one queen is in each column
-    for (let col = 0; col < colIndices.length; col++) {   // go through each column
-      for (let i = 0; i < colIndices[col].length; i++) {   // go through each index in a column
-        var index = colIndices[col][i];
-        if (occupied.includes(squares[index])) {  // if the square is occupied, add to the piece count for the column
-          count.push(index);
-        }
-      }
-      if (count.length > 1) {  // if there are more than 1 pieces in a column, there is an error
-        errPieces = errPieces.concat(count);  // add the counted pieces as errors
-      }
-      count = [];   // empty the counter array for the next check
-    }
-
-    // check if more than one queen is in each diagonal
+    // check if there are any errors
     for (let i = 0; i < squares.length; i++) {   // go through each square
-      if (occupied.includes(squares[i])) {  // if the square is occupied, get its diagonals
-        var diag = diagIndices.get(i);    // get the diagonal indices of the square
-        for (let d = 0; d < diag.length; d++) {
-          var index = diag[d];
-          if (occupied.includes(squares[index])) {  // if the diagonals are also occupied, add to both errors
+      if (occupied.includes(squares[i])) {  // if the square is occupied, get its list of indices that will cause an error
+        var errs = errorIndices.get(i);    
+
+        for (let d = 0; d < errs.length; d++) { // iterate thru the error list
+          var errIndex = errs[d];  // get the index of the error
+          if (occupied.includes(squares[errIndex])) {  // if the diagonals are also occupied, add to both the current square and the index that caused the error
             errPieces.push(i);
-            errPieces.push(index);
+            errPieces.push(errIndex);
           }
         }
       }
     }
 
+    
     // adjust square values for for errors, non-errors, or winning
     for (let i = 0; i < squares.length; i++) { 
-      if ((errPieces.length === 0) && (this.state.piecesPlaced === this.state.boardSize) && (occupied.includes(squares[i]))) {  // if all necessary pieces are placed and there are no errors, then user won
+      if ((errPieces.length === 0) && (this.state.piecesPlaced == boardSize) && (occupied.includes(squares[i]))) {  // if all necessary pieces are placed and there are no errors, then user won
         squares[i] = "W";
       }
       else if (errPieces.includes(i)) {         // set all pieces in error to E icon
@@ -238,6 +227,7 @@ class App extends React.Component {
   render() {
     // render the game info and chessboard
     const squares = this.state.squareStatus;
+    const piecesLeft = this.state.boardSize - this.state.piecesPlaced;
     this.checkPlacement();
 
     return (
@@ -247,6 +237,8 @@ class App extends React.Component {
         </div>
         <div className="game-description">
           Place queens on the chessboard without any of the pieces attacking another. A queen can move down the length of a column, row, and diagonal.
+        </div>
+        <div className="game-area">
           <div className="game-options">
             <div className="change-boardsize">
               Change Board Size:
@@ -258,17 +250,20 @@ class App extends React.Component {
                 <label><input type="radio" value={8} name="boardsize" />8x8</label><br/>
               </div>
             </div>
-          </div>
-          <button id="restart-button" onClick={() => this.startOver()}>
+            <div>
+              Remaining pieces: {piecesLeft}
+            </div>
+            <button id="restart-button" onClick={() => this.startOver()}>
               Start Over
-          </button>
-        </div>
-        <div id="board">
-          <Board
-            squares={squares}
-            onClick={(i) => this.squareClick(i)}
-            boardSize={this.state.boardSize}
-          />
+            </button>
+          </div>
+          <div id="board">
+            <Board
+              squares={squares}
+              onClick={(i) => this.squareClick(i)}
+              boardSize={this.state.boardSize}
+            />
+          </div>
         </div>
       </div>
     )
